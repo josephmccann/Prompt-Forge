@@ -1,0 +1,297 @@
+# PromptForge — AI Prompt Improvement Tool
+
+Build a polished, production-quality single-page web app called **PromptForge** that helps non-technical users turn vague ideas into high-quality, structured prompts for Large Language Models.
+
+This is a **prompt-generation and optimization tool**, NOT a chatbot. It runs entirely client-side with zero external APIs.
+
+---
+
+## Tech Stack
+
+- **React + TypeScript + Vite** (NOT Next.js — this is a client-side SPA, no SSR needed)
+- **Tailwind CSS** for styling
+- **localStorage** for persistence
+- No database, no backend, no external API calls
+
+---
+
+## App Flow (5 Screens)
+
+### Screen 1: Password Gate
+
+Simple password protection before accessing the app.
+
+- Single password input + "Enter" button
+- Password is hardcoded as an environment variable: `VITE_APP_PASSWORD` (default: `promptforge2024`)
+- On correct password → set `localStorage.setItem("authenticated", "true")` → navigate to main screen
+- On incorrect → show inline error "Incorrect password" with a subtle shake animation
+- On page load, check localStorage — if already authenticated, skip to main screen
+- Include a small "Lock" icon button in the app header that clears localStorage and returns to this screen (logout)
+
+### Screen 2: Input Screen (Home)
+
+The main entry point after login.
+
+**Layout:**
+- App header: "PromptForge" logo text (bold, clean) + logout lock icon on the right
+- Large centered card containing:
+  - Headline: "What do you want help with?"
+  - Subtext: "Describe your task, question, or goal. We'll turn it into a prompt that gets great results."
+  - `<textarea>` — 4 rows minimum, auto-grows, placeholder: "e.g., Help me write a cover letter for a marketing job..."
+  - Three horizontal selector rows (pill-style toggle buttons, single-select each):
+    - **Use case:** Personal | Work | Writing | Research | Planning | Creative
+    - **Tone:** Simple | Professional | Detailed | Creative
+    - **Depth:** Quick | Standard | Thorough
+  - Primary button: "Improve My Prompt →"
+- Below the card: "History" link/button that opens the history panel
+
+### Screen 3: Clarification Step (Conditional)
+
+This screen appears ONLY if the input is vague. Otherwise, skip directly to Screen 4.
+
+**Vagueness detection rules (implement ALL of these):**
+1. Input is fewer than 10 words
+2. Input lacks a clear subject AND action (e.g., "help me with something")
+3. Input contains only generic verbs without specifics: help, write, make, create, plan, explain, do, fix, build
+4. Input has no mention of: audience/who it's for, desired outcome, constraints, or context
+
+If ANY of conditions 1-3 are true, OR if condition 4 is true AND the input is under 20 words → show clarification.
+
+**Clarification UI:**
+- Card with heading: "A few quick questions to make your prompt stronger"
+- Show 2-4 dynamically selected questions based on what's missing. Question bank:
+  - Missing audience → "Who is this for? (e.g., my boss, a client, students, myself)"
+  - Missing goal → "What's the main goal or outcome you want?"
+  - Missing tone → "What tone do you want? (casual, formal, persuasive, friendly)"
+  - Missing constraints → "Any specific requirements or things to avoid?"
+  - Missing context → "Any background info that would help? (industry, topic area, situation)"
+  - Missing format → "What format do you want the output in? (email, list, essay, code, plan)"
+- Each question has a text input field below it
+- Two buttons at the bottom: "Generate Prompt →" (primary) and "Skip — just generate" (secondary/text button)
+
+### Screen 4: Prompt Output Screen (CORE)
+
+This is the main value of the app. Generate 3 prompt variants from the user's input.
+
+**Prompt Generation Engine (CRITICAL — implement this exactly):**
+
+The engine is a deterministic, rules-based template builder. It does NOT call any AI API.
+
+For each prompt, assemble these sections using the user's input + clarification answers + selected options:
+
+```
+TEMPLATE STRUCTURE:
+─────────────────
+## Role
+"You are a [role] with expertise in [domain]."
+
+## Objective  
+"Your goal is to [action] that [desired outcome]."
+
+## Context
+"Here is the relevant background: [user's context + clarification answers]"
+
+## Task
+"Please [specific action verb] the following: [restatement of user's core request with added specificity]"
+
+## Constraints
+- Do not fabricate information. If uncertain, say so.
+- Ask clarifying questions before making assumptions.
+- [Use-case specific constraint based on category]
+- [Tone-specific constraint]
+
+## Output Format
+"Structure your response as: [format based on use case and depth]"
+
+## Quality Standard
+"A strong response will: [2-3 criteria based on the use case]"
+```
+
+**Role mapping (use case → role):**
+- Personal → "a helpful personal assistant"
+- Work → "a senior professional consultant"  
+- Writing → "an experienced writer and editor"
+- Research → "a thorough research analyst"
+- Planning → "a strategic planning advisor"
+- Creative → "a creative director and ideation specialist"
+
+**Format mapping (depth → format):**
+- Quick → "A concise response in 2-3 paragraphs or a short bullet list"
+- Standard → "A well-organized response with clear sections and examples where helpful"
+- Thorough → "A comprehensive, detailed response with sections, examples, considerations, and actionable next steps"
+
+**Generate 3 variants:**
+
+1. **Balanced** (default/recommended) — Uses the full template above as-is. This is the "best" version.
+2. **Concise** — Strips the template to just: Role (1 sentence) + Task (1-2 sentences) + 2 constraints + Format (1 line). Total should be 4-6 sentences.
+3. **Maximum Control** — Full template PLUS these additions:
+   - Add "## Step-by-Step Instructions" section with numbered steps for the LLM to follow
+   - Add "## What NOT To Do" section with 3-4 anti-patterns
+   - Add "## Evaluation Criteria" section describing what a perfect answer looks like
+   - Wrap sections in XML-style delimiters: `<role>`, `<objective>`, `<task>`, `<constraints>`, `<format>`
+
+**Display as 3 cards in a horizontal row (stacked on mobile):**
+- Each card has: variant name + badge, the full prompt text in a scrollable `<pre>` or code-style block, and a "Copy" button
+- The Balanced card has a "★ Recommended" badge
+- Below the cards: a "Score" section and a "Why This Is Better" section
+
+### Prompt Scorecard
+
+Below the 3 prompt cards, show a simple scorecard for the **Balanced** variant.
+
+**Scoring rules (deterministic, 1-10 scale):**
+
+- **Clarity** (base 5):
+  +1 if output format is specified
+  +1 if role is defined
+  +1 if task uses specific action verbs (not just "help" or "do")
+  +1 if tone is explicitly set
+  +1 if under 500 words (conciseness bonus)
+
+- **Specificity** (base 4):
+  +1 if audience is mentioned
+  +1 if context/background is included
+  +1 if constraints are present
+  +1 per clarification question answered (max +3)
+  +1 if use-case-specific terminology is used
+  Cap at 10.
+
+- **Completeness** (base 3):
+  +1 for each template section present (role, objective, context, task, constraints, format, quality) — max +7
+  Cap at 10.
+
+- **Reliability** (base 4):
+  +1 if "do not fabricate/hallucinate" constraint exists
+  +1 if "ask clarifying questions" constraint exists
+  +1 if format is structured (not open-ended)
+  +1 if quality standard is defined
+  +1 if step-by-step instructions are included
+  +1 if anti-hallucination language is present
+  Cap at 10.
+
+**Display:** 4 horizontal progress bars with labels and numeric scores. Color: green (8-10), yellow (5-7), orange (3-4), red (1-2).
+
+### "Why This Is Better" Section
+
+Below the scorecard, show a card with heading "Why This Is Better" containing 3-4 short bullet points. Generate these dynamically:
+
+- If original input was short → "Your original was [X] words. The improved version adds role context, constraints, and structure that guides the AI."
+- If no audience was specified → "Added a target audience so the AI tailors its language and depth."
+- If no constraints existed → "Added safety constraints to prevent hallucination and assumptions."  
+- If no format was specified → "Defined an output format so you get structured, usable results."
+- If generic verbs were used → "Replaced vague language with specific instructions the AI can act on."
+- Always include: "Structured prompts with roles, constraints, and formats consistently produce higher-quality AI outputs."
+
+### Action Buttons
+
+Below the "Why This Is Better" section:
+- **Copy Best Prompt** — copies Balanced variant to clipboard, shows toast "Copied!"
+- **Copy All Three** — copies all 3 with labels/dividers
+- **Start Over** — returns to Input Screen, clears current state
+- **Make Shorter** — regenerates with depth forced to "Quick" and tone forced to "Simple"
+- **Make More Detailed** — regenerates with depth forced to "Thorough"
+
+### Screen 5: History Panel
+
+Accessible from a "History" button on the Input Screen and from a nav icon in the header.
+
+- Stores in localStorage as JSON array under key `promptforge_history`
+- Each entry: `{ id, timestamp, originalInput, useCase, tone, depth, clarificationAnswers, generatedPrompts: { balanced, concise, maxControl }, scores }`
+- Display as a vertical list of cards, newest first
+- Each card shows: timestamp (relative, e.g., "2 hours ago"), truncated original input (first 80 chars), use case badge, and an "Expand" button
+- Expand reveals the full Balanced prompt + scores
+- "Delete" button per entry, "Clear All History" button at bottom
+- Max 50 entries (FIFO — drop oldest when full)
+
+---
+
+## UI / UX Requirements
+
+### Visual Design
+- **Dark mode default** — dark charcoal background (#0f0f0f or similar), slightly lighter card surfaces, white/light gray text
+- Clean, modern, minimal — think Linear or Raycast aesthetic
+- Card-based layout with subtle borders or very soft shadows
+- Monospace font for prompt output display (use `font-mono` Tailwind class)
+- Sans-serif for UI text (use a clean Google Font like "DM Sans" or "Outfit")
+- Accent color: a single vibrant color for primary buttons and highlights (electric blue, teal, or amber — pick one and be consistent)
+- Smooth transitions between screens (simple fade or slide, CSS only)
+
+### Responsive
+- Mobile-first — all screens must work perfectly on 375px width
+- Prompt cards stack vertically on mobile, horizontal on desktop (use grid or flex wrap)
+- Touch-friendly: buttons min 44px tap target, adequate spacing
+
+### Microinteractions
+- Copy button → brief checkmark animation + "Copied!" toast
+- Password error → subtle shake on the input field
+- Score bars → animate from 0 to final value on mount
+- Button hover states with subtle scale or brightness shift
+
+---
+
+## File Organization Guidance
+
+Organize code cleanly into these logical groupings (exact filenames are up to you):
+
+- **Components:** Header, PasswordGate, InputForm, ClarificationForm, PromptCard, Scorecard, WhyBetter, HistoryPanel, ActionButtons
+- **Logic/Lib:** promptBuilder (template assembly + variant generation), clarificationEngine (vagueness detection + question selection), scoringEngine (deterministic scoring), storage (localStorage CRUD for history), auth (password check + session management)
+- **Styles:** Tailwind config with dark theme defaults + any custom CSS
+
+---
+
+## Environment Variables
+
+```
+VITE_APP_PASSWORD=promptforge2024
+```
+
+Set in `.env` file. Document in README.
+
+---
+
+## README Must Include
+
+1. One-line description: "PromptForge — Turn vague ideas into powerful AI prompts"
+2. How to run: `npm install && npm run dev`
+3. How to set password: edit `.env` file
+4. Example: Show a before/after — "help me write an email" → the full Balanced prompt output
+5. Tech stack listed
+6. Note: "No API keys needed. Runs 100% locally."
+
+---
+
+## What NOT To Build
+
+- No chatbot or conversational UI
+- No AI/LLM API calls (everything is deterministic template logic)
+- No user accounts or database
+- No server-side rendering or backend routes
+- No complex animation libraries (CSS transitions only)
+- No dark/light mode toggle (dark only to keep scope tight)
+
+---
+
+## Success Criteria
+
+1. A non-technical user can paste "help me plan a vacation" and get back 3 well-structured prompts they can copy into ChatGPT/Claude
+2. The app loads fast, looks polished, and feels simple
+3. The clarification step genuinely improves prompt quality (not just filler questions)
+4. Copy-to-clipboard works reliably
+5. History persists across browser refreshes
+6. Works on mobile Safari and Chrome
+
+---
+
+## Build Order (Suggested)
+
+1. Scaffold Vite + React + TS + Tailwind
+2. Build the password gate
+3. Build the input form with selectors
+4. Build the clarification engine + UI
+5. Build the prompt builder (most important — get the templates right)
+6. Build the output cards + copy functionality
+7. Build the scoring engine + display
+8. Build the "Why This Is Better" section
+9. Build the action buttons (regenerate, shorter, more detailed)
+10. Build history (save + display + delete)
+11. Polish: transitions, responsive tweaks, error states
