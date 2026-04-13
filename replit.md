@@ -18,11 +18,11 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## Artifacts
 
-### PromptForge (`artifacts/promptforge`)
+### PromptForger (`artifacts/promptforge`)
 A client-side SPA that helps non-technical users turn vague ideas into structured AI prompts. Runs 100% in the browser with no external API calls.
 
 - **Tech**: React + TypeScript + Vite + Tailwind CSS
-- **Auth**: Simple password gate using `VITE_APP_PASSWORD` env var (default: `promptforge2024`)
+- **Auth**: Simple password gate using `VITE_APP_PASSWORD` env var (default: `promptforger2024`)
 - **Storage**: localStorage for history persistence
 - **Theme**: Dark mode only, teal accent (#14b8a6)
 - **Screens**: Password Gate, Input Form, Clarification (conditional), Prompt Output (3 variants), History

@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "PromptForge"
+title = "PromptForger"
 version = "1.0.0"
 id = "artifacts/promptforge"
 router = "path"
@@ -15,10 +15,10 @@ paths = [ "/" ]
 localPort = 23239
 
 [services.development]
-run = "pnpm --filter @workspace/promptforge run dev"
+run = "pnpm --filter @workspace/promptforger run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/promptforge", "run", "build" ]
+build = [ "pnpm", "--filter", "@workspace/promptforger", "run", "build" ]
 publicDir = "artifacts/promptforge/dist/public"
 serve = "static"
 

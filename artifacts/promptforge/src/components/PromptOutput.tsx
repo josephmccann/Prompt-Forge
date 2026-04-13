@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Copy, Check, Star, ArrowLeft, Minimize2, Maximize2 } from "lucide-react";
+import { copyToClipboard } from "@/lib/utils";
 import type { GeneratedPrompts } from "@/lib/promptBuilder";
 import type { Scores, ScoreExplanation } from "@/lib/scoringEngine";
 
@@ -16,20 +17,9 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    await copyToClipboard(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -140,31 +130,13 @@ export default function PromptOutput({
 
   const copyAll = async () => {
     const text = `=== BALANCED (Recommended) ===\n\n${prompts.balanced}\n\n=== CONCISE ===\n\n${prompts.concise}\n\n=== MAXIMUM CONTROL ===\n\n${prompts.maxControl}`;
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-    }
+    await copyToClipboard(text);
     setToast("All three prompts copied!");
     setTimeout(() => setToast(""), 2500);
   };
 
   const copyBest = async () => {
-    try {
-      await navigator.clipboard.writeText(prompts.balanced);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = prompts.balanced;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-    }
+    await copyToClipboard(prompts.balanced);
     setToast("Best prompt copied!");
     setTimeout(() => setToast(""), 2500);
   };

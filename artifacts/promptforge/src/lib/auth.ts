@@ -5,7 +5,7 @@ export function isAuthenticated(): boolean {
 }
 
 export function login(password: string): boolean {
-  const correctPassword = import.meta.env.VITE_APP_PASSWORD || "promptforge2024";
+  const correctPassword = import.meta.env.VITE_APP_PASSWORD || "promptforger2024";
   if (password === correctPassword) {
     localStorage.setItem(AUTH_KEY, "true");
     return true;

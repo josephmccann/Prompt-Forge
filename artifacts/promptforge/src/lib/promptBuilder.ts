@@ -89,27 +89,34 @@ function getSpecificActionVerb(input: string): string {
   return "assist with";
 }
 
+const DOMAIN_KEYWORDS: [RegExp, string][] = [
+  [/marketing|brand|advertis/, "marketing and brand strategy"],
+  [/code|programming|software|app|website|api/, "software development"],
+  [/email|communication|letter/, "professional communication"],
+  [/data|analytics|metrics/, "data analysis"],
+  [/finance|budget|invest/, "financial planning"],
+  [/health|medical|wellness/, "health and wellness"],
+  [/education|learn|teach|study/, "education and learning"],
+  [/travel|trip|vacation/, "travel planning"],
+  [/food|recipe|cook|meal/, "culinary arts"],
+  [/legal|law|contract/, "legal guidance"],
+];
+
+const USECASE_DOMAINS: Record<string, string> = {
+  Personal: "personal productivity",
+  Work: "professional consulting",
+  Writing: "content creation and writing",
+  Research: "research and analysis",
+  Planning: "strategic planning",
+  Creative: "creative ideation",
+};
+
 function getDomain(useCase: string, input: string): string {
   const lower = input.toLowerCase();
-  if (/marketing|brand|advertis/.test(lower)) return "marketing and brand strategy";
-  if (/code|programming|software|app|website|api/.test(lower)) return "software development";
-  if (/email|communication|letter/.test(lower)) return "professional communication";
-  if (/data|analytics|metrics/.test(lower)) return "data analysis";
-  if (/finance|budget|invest/.test(lower)) return "financial planning";
-  if (/health|medical|wellness/.test(lower)) return "health and wellness";
-  if (/education|learn|teach|study/.test(lower)) return "education and learning";
-  if (/travel|trip|vacation/.test(lower)) return "travel planning";
-  if (/food|recipe|cook|meal/.test(lower)) return "culinary arts";
-  if (/legal|law|contract/.test(lower)) return "legal guidance";
-  const domainMap: Record<string, string> = {
-    Personal: "personal productivity",
-    Work: "professional consulting",
-    Writing: "content creation and writing",
-    Research: "research and analysis",
-    Planning: "strategic planning",
-    Creative: "creative ideation",
-  };
-  return domainMap[useCase] || "general assistance";
+  for (const [pattern, domain] of DOMAIN_KEYWORDS) {
+    if (pattern.test(lower)) return domain;
+  }
+  return USECASE_DOMAINS[useCase] || "general assistance";
 }
 
 export function buildPrompts(input: PromptInput): GeneratedPrompts {
