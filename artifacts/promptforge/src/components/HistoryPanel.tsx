@@ -66,9 +66,7 @@ function HistoryCard({ entry, onDelete }: { entry: HistoryEntry; onDelete: () =>
             <span>Reliability: {entry.scores.reliability}/10</span>
           </div>
           <div className="rounded-lg bg-black/30 p-4 overflow-auto max-h-60">
-            <pre className="text-xs text-zinc-400 font-mono whitespace-pre-wrap break-words leading-relaxed">
-              {entry.generatedPrompts.balanced}
-            </pre>
+            <pre className="text-xs text-zinc-400 font-mono whitespace-pre-wrap break-words leading-relaxed">{entry.generatedPrompts.balanced}</pre>
           </div>
         </div>
       )}
