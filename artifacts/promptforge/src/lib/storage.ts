@@ -1,5 +1,6 @@
 const HISTORY_KEY = "promptforger_history";
 const MAX_ENTRIES = 50;
+const MAX_STORAGE_BYTES = 2 * 1024 * 1024; // 2 MB cap
 
 export interface HistoryEntry {
   id: string;
@@ -38,7 +39,12 @@ export function addToHistory(entry: HistoryEntry): void {
   if (history.length > MAX_ENTRIES) {
     history.length = MAX_ENTRIES;
   }
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  let serialized = JSON.stringify(history);
+  while (serialized.length > MAX_STORAGE_BYTES && history.length > 1) {
+    history.pop();
+    serialized = JSON.stringify(history);
+  }
+  localStorage.setItem(HISTORY_KEY, serialized);
 }
 
 export function deleteFromHistory(id: string): void {

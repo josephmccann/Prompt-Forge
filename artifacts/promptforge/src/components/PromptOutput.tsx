@@ -109,9 +109,7 @@ function PromptCard({
         )}
       </div>
       <div className="flex-1 overflow-auto max-h-80 mb-3 rounded-lg bg-black/30 p-4">
-        <pre className="text-sm text-zinc-300 font-mono whitespace-pre-wrap break-words leading-relaxed">
-          {prompt}
-        </pre>
+        <pre className="text-sm text-zinc-300 font-mono whitespace-pre-wrap break-words leading-relaxed">{prompt}</pre>
       </div>
       <CopyButton text={prompt} label="Copy" />
     </div>
@@ -127,6 +125,20 @@ export default function PromptOutput({
   onMakeDetailed,
 }: PromptOutputProps) {
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "C") {
+        e.preventDefault();
+        copyToClipboard(prompts.balanced).then(() => {
+          setToast("Best prompt copied! (Ctrl+Shift+C)");
+          setTimeout(() => setToast(""), 2500);
+        });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [prompts.balanced]);
 
   const copyAll = async () => {
     const text = `=== BALANCED (Recommended) ===\n\n${prompts.balanced}\n\n=== CONCISE ===\n\n${prompts.concise}\n\n=== MAXIMUM CONTROL ===\n\n${prompts.maxControl}`;
@@ -182,6 +194,7 @@ export default function PromptOutput({
         <button
           onClick={copyBest}
           className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-semibold transition-all hover:scale-[1.01] active:scale-[0.99]"
+          title="Ctrl+Shift+C"
         >
           Copy Best Prompt
         </button>
