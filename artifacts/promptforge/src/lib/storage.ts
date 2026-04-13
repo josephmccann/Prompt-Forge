@@ -1,4 +1,4 @@
-const HISTORY_KEY = "promptforge_history";
+const HISTORY_KEY = "promptforger_history";
 const MAX_ENTRIES = 50;
 
 export interface HistoryEntry {

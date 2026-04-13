@@ -33,7 +33,7 @@ export default function PasswordGate({ onAuthenticated }: PasswordGateProps) {
             <KeyRound className="w-7 h-7 text-teal-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">
-            Prompt<span className="text-teal-400">Forge</span>
+            Prompt<span className="text-teal-400">Forger</span>
           </h1>
           <p className="text-sm text-zinc-500">Enter password to continue</p>
         </div>
