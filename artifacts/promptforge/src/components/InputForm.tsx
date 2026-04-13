@@ -10,7 +10,10 @@ interface InputFormProps {
   }) => void;
 }
 
-const USE_CASES = ["Personal", "Work", "Writing", "Research", "Planning", "Creative"];
+const USE_CASES = [
+  "Personal", "Work", "Writing", "Research", "Planning", "Creative",
+  "Education", "Coding", "Cooking", "General Intelligence", "Deep Research",
+];
 const TONES = ["Simple", "Professional", "Detailed", "Creative"];
 const DEPTHS = ["Quick", "Standard", "Thorough"];
 
