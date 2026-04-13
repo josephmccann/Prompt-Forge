@@ -19,6 +19,11 @@ const ROLE_MAP: Record<string, string> = {
   Research: "a thorough research analyst",
   Planning: "a strategic planning advisor",
   Creative: "a creative director and ideation specialist",
+  Education: "a patient, knowledgeable tutor and academic writing coach",
+  Coding: "a senior software engineer and technical mentor",
+  Cooking: "a professional chef and recipe developer",
+  "General Intelligence": "a knowledgeable generalist with broad expertise across many fields",
+  "Deep Research": "an academic researcher specializing in systematic literature review and evidence synthesis",
 };
 
 const FORMAT_MAP: Record<string, string> = {
@@ -41,6 +46,11 @@ const USECASE_CONSTRAINTS: Record<string, string> = {
   Research: "Ground claims in evidence. Distinguish facts from interpretations and note where evidence is limited.",
   Planning: "Include timelines, milestones, and contingency considerations.",
   Creative: "Push beyond obvious solutions. Offer unexpected angles and fresh perspectives.",
+  Education: "Meet the student at their level. For essays, help develop a thesis and supporting arguments — never write it for them. For learning, explain concepts with concrete examples and check understanding along the way.",
+  Coding: "Provide working code with clear comments. Explain the reasoning behind design choices, not just the syntax.",
+  Cooking: "Include exact measurements, temperatures, and timing. Note substitutions for common dietary restrictions.",
+  "General Intelligence": "Draw connections across disciplines. Provide a well-rounded answer that considers multiple perspectives.",
+  "Deep Research": "Trace claims to primary sources. Evaluate methodology quality, identify consensus vs. debate, and flag gaps in the literature.",
 };
 
 const QUALITY_STANDARDS: Record<string, string> = {
@@ -50,6 +60,11 @@ const QUALITY_STANDARDS: Record<string, string> = {
   Research: "is well-sourced, balanced, distinguishes fact from opinion, and identifies knowledge gaps",
   Planning: "is realistic, accounts for dependencies, includes measurable milestones, and considers risks",
   Creative: "surprises with unexpected angles, offers multiple distinct directions, and pushes beyond the obvious",
+  Education: "helps the student genuinely understand the material, guides essay writing with strong thesis development and textual evidence, and builds confidence without doing the work for them",
+  Coding: "produces correct, runnable code with clear explanations, handles edge cases, and follows the conventions of the language or framework",
+  Cooking: "produces a recipe that a home cook can follow on the first try, with clear timing, visual cues for doneness, and practical tips",
+  "General Intelligence": "synthesizes information across domains, provides a balanced and nuanced answer, and acknowledges the limits of its knowledge",
+  "Deep Research": "systematically covers the evidence landscape, evaluates source quality, identifies where experts agree and disagree, and highlights open questions",
 };
 
 // Few-shot example stubs keyed by use case — gives the AI a concrete
@@ -79,6 +94,26 @@ const EXAMPLE_STUBS: Record<string, { input: string; output: string }> = {
     input: "Give me ideas for a coffee shop brand name",
     output: "1. **Grounded** — plays on coffee grounds + being grounded/calm. Works for a mindfulness-themed café…  2. **Second Draft** — nods to writers and the 'second cup.' Appeals to creative professionals…  3. **Steep & Stay** — invites lingering; crosses tea and coffee language…",
   },
+  Education: {
+    input: "Help me write an essay on symbolism in The Great Gatsby",
+    output: "**Thesis starter:** The green light, the Valley of Ashes, and Gatsby's parties each represent a different failure of the American Dream.\n\n**Body paragraph 1 (green light):** The green light at the end of Daisy's dock symbolizes Gatsby's unreachable longing. Key quote: \"he stretched out his arms toward… a single green light\" (Ch. 1). Connect this to the idea that the Dream is always in the future, never the present.\n\n**Your turn:** Find a quote about the Valley of Ashes from Ch. 2. What does the gray landscape represent about the people the Dream leaves behind?\n\nI'll help you build each paragraph once you have your evidence.",
+  },
+  Coding: {
+    input: "Write a function to debounce user input in TypeScript",
+    output: "```typescript\nfunction debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {\n  let timer: ReturnType<typeof setTimeout>;\n  return (...args: Parameters<T>) => {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn(...args), ms);\n  };\n}\n```\n**Why this works:** Each keystroke resets the timer. The function only fires once the user stops typing for `ms` milliseconds. `ReturnType<typeof setTimeout>` keeps it platform-agnostic (works in Node and browsers).",
+  },
+  Cooking: {
+    input: "Give me a weeknight pasta recipe under 30 minutes",
+    output: "**Lemon Garlic Butter Pasta (serves 2, 20 min)**\n1. Boil 200g spaghetti in salted water (1 tbsp salt per liter). Reserve 1 cup pasta water before draining.\n2. While pasta cooks: melt 2 tbsp butter over medium heat, add 4 sliced garlic cloves, cook until golden (~2 min). Watch closely — golden not brown.\n3. Add juice of 1 lemon + ½ cup pasta water. Toss in drained pasta. Season with salt, pepper, red pepper flakes. Finish with parmesan.\n**Substitutions:** Dairy-free? Use olive oil instead of butter, skip parmesan. Gluten-free? Use GF pasta, add 30 sec to cook time.",
+  },
+  "General Intelligence": {
+    input: "Why do some countries drive on the left?",
+    output: "**Historical origin:** Most people are right-handed. Medieval horseback riders kept left so their sword arm (right) faced oncoming traffic. **Why it split:** Napoleon standardized right-side driving across his empire. Britain, unconquered, kept left — and exported it to colonies (India, Australia, Japan via British naval influence). **Today:** ~35% of countries drive on the left, almost all with British colonial ties. **Fun nuance:** Sweden switched from left to right in 1967 (Dagen H) — accident rates briefly dropped because everyone drove extra carefully.",
+  },
+  "Deep Research": {
+    input: "What does the evidence say about the effectiveness of spaced repetition for long-term learning?",
+    output: "**Consensus (strong):** Spaced repetition significantly outperforms massed practice for long-term retention. Meta-analysis by Cepeda et al. (2006, Psychological Bulletin, k=317 studies) found a robust effect (d=0.85).\n**Mechanism:** The \"desirable difficulty\" framework (Bjork, 1994) — forgetting and re-retrieving strengthens memory traces.\n**Optimal intervals:** Pimsleur (1967) proposed expanding gaps; Wozniak's SM-2 algorithm (used by Anki) dynamically adjusts. No single schedule dominates — effectiveness is robust across variations.\n**Limitation:** Most studies use factual recall (vocabulary, anatomy). Evidence for complex skill transfer (e.g., problem-solving) is thinner (Dunlosky et al., 2013).\n**Open question:** How to optimally space conceptual vs. procedural knowledge remains under-studied.",
+  },
 };
 
 function buildContext(input: PromptInput): string {
@@ -100,6 +135,32 @@ function buildContext(input: PromptInput): string {
   }
   if (input.clarificationAnswers.format) {
     parts.push(`Desired format: ${input.clarificationAnswers.format}`);
+  }
+  // Use-case-specific answers (Education, Coding, Cooking, etc.)
+  if (input.clarificationAnswers.level) {
+    parts.push(`Level: ${input.clarificationAnswers.level}`);
+  }
+  if (input.clarificationAnswers.subject) {
+    parts.push(`Subject: ${input.clarificationAnswers.subject}`);
+  }
+  if (input.clarificationAnswers.language) {
+    parts.push(`Language/framework: ${input.clarificationAnswers.language}`);
+  }
+  if (input.clarificationAnswers.servings) {
+    parts.push(`Servings: ${input.clarificationAnswers.servings}`);
+  }
+  if (input.clarificationAnswers.scope) {
+    parts.push(`Scope: ${input.clarificationAnswers.scope}`);
+  }
+  if (input.clarificationAnswers.field) {
+    parts.push(`Field: ${input.clarificationAnswers.field}`);
+  }
+  if (input.clarificationAnswers.depth) {
+    parts.push(`Desired depth: ${input.clarificationAnswers.depth}`);
+  }
+  // User refinement feedback (appended after initial generation)
+  if (input.clarificationAnswers.refinement) {
+    parts.push(`Additional instructions from user: ${input.clarificationAnswers.refinement}`);
   }
   return parts.length > 0 ? parts.join(". ") + "." : "";
 }
@@ -144,6 +205,11 @@ const USECASE_DOMAINS: Record<string, string> = {
   Research: "research and analysis",
   Planning: "strategic planning",
   Creative: "creative ideation",
+  Education: "academic tutoring and study help",
+  Coding: "software engineering",
+  Cooking: "culinary arts and home cooking",
+  "General Intelligence": "general knowledge across disciplines",
+  "Deep Research": "academic research and evidence synthesis",
 };
 
 function getDomain(useCase: string, input: string): string {
@@ -181,6 +247,11 @@ function buildVerificationStep(useCase: string): string {
     Research: "Are claims supported by evidence? Are knowledge gaps acknowledged?",
     Planning: "Are milestones measurable? Are risks and contingencies identified?",
     Creative: "Are the ideas genuinely distinct from each other? Do they go beyond the obvious?",
+    Education: "Does this guide the student without doing the work for them? Are explanations at the right level? For essays, is there a clear thesis and textual evidence?",
+    Coding: "Does the code run correctly? Are edge cases handled? Is the reasoning behind design choices explained?",
+    Cooking: "Could a home cook follow this on the first try? Are measurements exact, timing clear, and substitutions noted?",
+    "General Intelligence": "Is the answer balanced across perspectives? Are connections between ideas made explicit?",
+    "Deep Research": "Are primary sources cited? Is methodology quality evaluated? Are areas of expert disagreement flagged?",
   };
   return checks[useCase] || "Does the response directly address the request and follow the specified format?";
 }
