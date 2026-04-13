@@ -91,6 +91,7 @@ export default function InputForm({ onSubmit }: InputFormProps) {
               placeholder="e.g., Help me write a cover letter for a marketing job..."
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/40 resize-none transition-all min-h-[96px]"
               rows={4}
+              aria-label="Describe your task, question, or goal"
             />
 
             <PillGroup
