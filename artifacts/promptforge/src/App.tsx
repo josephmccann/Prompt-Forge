@@ -55,8 +55,8 @@ function App() {
     };
 
     const generated = buildPrompts(input);
-    const scored = scorePrompt(generated.balanced, data.input, answers);
-    const explained = generateExplanation(data.input, answers, scored);
+    const scored = scorePrompt(generated.balanced, data.input, answers, data.depth);
+    const explained = generateExplanation(data.input, answers, scored, data.depth);
 
     setPrompts(generated);
     setScores(scored);
