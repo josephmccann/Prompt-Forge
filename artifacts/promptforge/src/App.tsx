@@ -32,9 +32,9 @@ interface FormData {
 }
 
 function App() {
-  const [screen, setScreen] = useState<Screen>(
-    isSubscribed() ? "input" : "paywall",
-  );
+  // TODO: Re-enable paywall before App Store submission:
+  // isSubscribed() ? "input" : "paywall"
+  const [screen, setScreen] = useState<Screen>("input");
   const [prevScreen, setPrevScreen] = useState<Screen>("paywall");
   const [formData, setFormData] = useState<FormData | null>(null);
   const [clarificationQuestions, setClarificationQuestions] = useState<
