@@ -1,20 +1,28 @@
 import { useState, useEffect } from "react";
-import { isAuthenticated } from "@/lib/auth";
 import { analyzeInput } from "@/lib/clarificationEngine";
 import { buildPrompts } from "@/lib/promptBuilder";
 import { scorePrompt, generateExplanation } from "@/lib/scoringEngine";
 import { addToHistory, generateId } from "@/lib/storage";
+import { isSubscribed } from "@/lib/subscription";
 import type { GeneratedPrompts } from "@/lib/promptBuilder";
 import type { Scores, ScoreExplanation } from "@/lib/scoringEngine";
 
-import PasswordGate from "@/components/PasswordGate";
 import Header from "@/components/Header";
 import InputForm from "@/components/InputForm";
 import ClarificationForm from "@/components/ClarificationForm";
 import PromptOutput from "@/components/PromptOutput";
 import HistoryPanel from "@/components/HistoryPanel";
+import Paywall from "@/components/Paywall";
+import { PrivacyPolicy, TermsOfService } from "@/components/LegalPage";
 
-type Screen = "password" | "input" | "clarification" | "output" | "history";
+type Screen =
+  | "paywall"
+  | "input"
+  | "clarification"
+  | "output"
+  | "history"
+  | "privacy"
+  | "terms";
 
 interface FormData {
   input: string;
@@ -24,9 +32,10 @@ interface FormData {
 }
 
 function App() {
-  const [screen, setScreen] = useState<Screen>(
-    isAuthenticated() ? "input" : "password",
-  );
+  // TODO: Re-enable paywall before App Store submission:
+  // isSubscribed() ? "input" : "paywall"
+  const [screen, setScreen] = useState<Screen>("input");
+  const [prevScreen, setPrevScreen] = useState<Screen>("paywall");
   const [formData, setFormData] = useState<FormData | null>(null);
   const [clarificationQuestions, setClarificationQuestions] = useState<
     { key: string; question: string }[]
@@ -42,8 +51,26 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [screen]);
 
-  const handleAuthenticated = () => setScreen("input");
-  const handleLogout = () => setScreen("password");
+  // Intercept /privacy and /terms hash routes for legal pages
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (href === "/privacy") {
+        e.preventDefault();
+        setPrevScreen(screen);
+        setScreen("privacy");
+      } else if (href === "/terms") {
+        e.preventDefault();
+        setPrevScreen(screen);
+        setScreen("terms");
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [screen]);
 
   const generateAndShow = (data: FormData, answers: Record<string, string>) => {
     const input = {
@@ -129,14 +156,19 @@ function App() {
     }
   };
 
-  if (screen === "password") {
-    return <PasswordGate onAuthenticated={handleAuthenticated} />;
+  if (screen === "privacy") {
+    return <PrivacyPolicy onBack={() => setScreen(prevScreen)} />;
+  }
+  if (screen === "terms") {
+    return <TermsOfService onBack={() => setScreen(prevScreen)} />;
+  }
+  if (screen === "paywall") {
+    return <Paywall onSubscribed={() => setScreen("input")} />;
   }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header
-        onLogout={handleLogout}
         onHistoryClick={() =>
           setScreen(screen === "history" ? "input" : "history")
         }
