@@ -107,9 +107,9 @@ function App() {
 
   const handleInputSubmit = (data: FormData) => {
     setFormData(data);
-    const analysis = analyzeInput(data.input);
+    const analysis = analyzeInput(data.input, data.useCase);
 
-    if (analysis.isVague) {
+    if (analysis.isVague && analysis.questions.length > 0) {
       setClarificationQuestions(analysis.questions);
       setScreen("clarification");
     } else {
@@ -156,6 +156,18 @@ function App() {
     }
   };
 
+  const handleRefine = (feedback: string) => {
+    if (formData) {
+      const updatedAnswers = {
+        ...clarificationAnswers,
+        refinement: clarificationAnswers.refinement
+          ? `${clarificationAnswers.refinement}. ${feedback}`
+          : feedback,
+      };
+      generateAndShow(formData, updatedAnswers);
+    }
+  };
+
   if (screen === "privacy") {
     return <PrivacyPolicy onBack={() => setScreen(prevScreen)} />;
   }
@@ -194,6 +206,7 @@ function App() {
             onStartOver={handleStartOver}
             onMakeShorter={handleMakeShorter}
             onMakeDetailed={handleMakeDetailed}
+            onRefine={handleRefine}
           />
         )}
 

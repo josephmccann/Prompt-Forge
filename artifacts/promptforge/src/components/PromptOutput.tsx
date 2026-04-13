@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Copy, Check, Star, ArrowLeft, Minimize2, Maximize2 } from "lucide-react";
+import { Copy, Check, Star, ArrowLeft, Minimize2, Maximize2, RefreshCw } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils";
 import type { GeneratedPrompts } from "@/lib/promptBuilder";
 import type { Scores, ScoreExplanation } from "@/lib/scoringEngine";
@@ -11,6 +11,7 @@ interface PromptOutputProps {
   onStartOver: () => void;
   onMakeShorter: () => void;
   onMakeDetailed: () => void;
+  onRefine: (feedback: string) => void;
 }
 
 function CopyButton({ text, label }: { text: string; label: string }) {
@@ -123,8 +124,10 @@ export default function PromptOutput({
   onStartOver,
   onMakeShorter,
   onMakeDetailed,
+  onRefine,
 }: PromptOutputProps) {
   const [toast, setToast] = useState("");
+  const [refineInput, setRefineInput] = useState("");
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -188,6 +191,43 @@ export default function PromptOutput({
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Refinement input */}
+      <div className="bg-[#161616] border border-white/[0.06] rounded-2xl p-6 mb-8">
+        <h3 className="text-lg font-semibold text-white mb-2">
+          Refine Your Prompt
+        </h3>
+        <p className="text-sm text-zinc-500 mb-4">
+          Want to tweak the result? Describe what to change and we'll regenerate.
+        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (refineInput.trim()) {
+              onRefine(refineInput.trim());
+              setRefineInput("");
+            }
+          }}
+          className="flex gap-3"
+        >
+          <input
+            type="text"
+            value={refineInput}
+            onChange={(e) => setRefineInput(e.target.value)}
+            placeholder={"e.g., \"make it more formal\" or \"add that it's a 5-page paper\""}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500/40 transition-all text-sm"
+            aria-label="Describe how to refine the prompt"
+          />
+          <button
+            type="submit"
+            disabled={!refineInput.trim()}
+            className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold transition-all flex items-center gap-2 text-sm shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+            Refine
+          </button>
+        </form>
       </div>
 
       <div className="flex flex-wrap gap-3">

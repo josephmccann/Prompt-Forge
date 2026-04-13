@@ -136,6 +136,32 @@ function buildContext(input: PromptInput): string {
   if (input.clarificationAnswers.format) {
     parts.push(`Desired format: ${input.clarificationAnswers.format}`);
   }
+  // Use-case-specific answers (Education, Coding, Cooking, etc.)
+  if (input.clarificationAnswers.level) {
+    parts.push(`Level: ${input.clarificationAnswers.level}`);
+  }
+  if (input.clarificationAnswers.subject) {
+    parts.push(`Subject: ${input.clarificationAnswers.subject}`);
+  }
+  if (input.clarificationAnswers.language) {
+    parts.push(`Language/framework: ${input.clarificationAnswers.language}`);
+  }
+  if (input.clarificationAnswers.servings) {
+    parts.push(`Servings: ${input.clarificationAnswers.servings}`);
+  }
+  if (input.clarificationAnswers.scope) {
+    parts.push(`Scope: ${input.clarificationAnswers.scope}`);
+  }
+  if (input.clarificationAnswers.field) {
+    parts.push(`Field: ${input.clarificationAnswers.field}`);
+  }
+  if (input.clarificationAnswers.depth) {
+    parts.push(`Desired depth: ${input.clarificationAnswers.depth}`);
+  }
+  // User refinement feedback (appended after initial generation)
+  if (input.clarificationAnswers.refinement) {
+    parts.push(`Additional instructions from user: ${input.clarificationAnswers.refinement}`);
+  }
   return parts.length > 0 ? parts.join(". ") + "." : "";
 }
 
